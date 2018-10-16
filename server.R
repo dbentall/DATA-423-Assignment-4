@@ -6,15 +6,17 @@ library(pls)
 library(nnet)
 library(glmnet)
 
+# TODO
+  # change CV back to 20
 
 clus <- makeCluster(detectCores(all.tests = FALSE, logical = TRUE))
 registerDoParallel(clus)  # this will work on windows
-trControl <- trainControl("cv", number = 20)  # shared cross validation specification
+trControl <- trainControl("cv", number = 5)  # shared cross validation specification
 
 shinyServer(function(input, output, session) {
 
   getData <- reactive({
-    data <- read.csv(file="/home/nick/Documents/DATA423/Assignment4/Ass4Data.csv")
+    data <- read.csv(file="Ass4Data.csv")
     rownames(data) <- data$ID
     data$ID <- NULL
     data
@@ -156,7 +158,7 @@ shinyServer(function(input, output, session) {
   
   output$SelectionBoxPlot <- renderPlot({
     results <- caret::resamples(getAllModels())
-    bwplot(results, notch=input$Notch)
+    bwplot(results, notch=input$Notch, scales = "free")
   })
   
   
