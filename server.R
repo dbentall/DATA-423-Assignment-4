@@ -2,17 +2,19 @@ library(shiny)
 library(DT)
 library(caret)
 library(doParallel)
+library(dplyr)
+library(glmnet)
 library(pls)
 library(nnet)
-library(glmnet)
 library(xgboost)
+library(kernlab)
 
 # TODO
   # change CV back to 20
 
 clus <- makeCluster(detectCores(all.tests = FALSE, logical = TRUE))
 registerDoParallel(clus)  # this will work on windows
-trControl <- trainControl("cv", number = 5)  # shared cross validation specification
+trControl <- trainControl("cv", number = 5, timingSamps = 10)  # shared cross validation specification
 
 shinyServer(function(input, output, session) {
 
@@ -151,8 +153,8 @@ shinyServer(function(input, output, session) {
     showNotification(id = method, paste("Optimising", method, "hyper-parameters using cross validation"), session = session, duration = NULL)
     mods <- caret::train(Y ~ ., data = getTrainData(), method = method, metric = "RMSE",
                          trControl = trControl,
-                         tuneGrid = expand.grid(nrounds = 500, colsample_bytree = 1/3, min_child_weight = 1, subsample = 1,
-                                                max_depth = c(1,2,3), eta = c(0.2, 0.3, 0.4), gamma = c(0, 1, 10))
+                         tuneGrid = expand.grid(nrounds = 500, colsample_bytree = 0.33, min_child_weight = 1, subsample = 1,
+                                                max_depth = c(2,3,4), eta = c(0.04, 0.05, 0.06), gamma = 1)
     ) 
     removeNotification(id=method)
     mods
@@ -169,14 +171,14 @@ shinyServer(function(input, output, session) {
   
   output$XGBModelSummary2 <- renderPrint({
     mods <- getXGBModels()
-    print(mods$finalModel)
+    print(mods)
   })
   
   
   
   ##############################################################################  
   getAllModels <- reactive({
-    list(GLMnet=getGlmModels(), PLS=getPlsModels(), ANN=getAnnModels(), XGB=getXGBModels)  # expand this list with further models
+    list(GLMnet=getGlmModels(), PLS=getPlsModels(), ANN=getAnnModels(), XGB=getXGBModels())  # expand this list with further models
   })
   
   output$SelectionSummary <- renderPrint({
@@ -187,6 +189,11 @@ shinyServer(function(input, output, session) {
   output$SelectionBoxPlot <- renderPlot({
     results <- caret::resamples(getAllModels())
     bwplot(results, notch=input$Notch, scales = "free")
+  })
+  
+  output$Times <- renderPrint({
+    cat("Model processing times (s):")
+    print(select(resamples(getAllModels())$timings, Training=FinalModel, Predicting=Prediction))
   })
   
   

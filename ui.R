@@ -51,7 +51,8 @@ shinyUI(fluidPage(
              tags$h3("Cross validation results:"),
              checkboxInput("Notch", "Show notch", value = FALSE),
              plotOutput("SelectionBoxPlot"),
-             radioButtons("Choice", "Model choice", choices = c("GLMnet", "PLS", "ANN", "XGB"), selected = "XGB")
+             verbatimTextOutput("Times"),
+             radioButtons("Choice", "Model choice", choices = c("GLMnet", "PLS", "ANN", "XGB"), selected = "PLS")
     ),
     tabPanel("Performance",
              htmlOutput("Title"),
