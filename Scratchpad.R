@@ -1,6 +1,6 @@
 
 library(caret)
-library(xgboost)
+library(kernlab)
 library(dplyr)
 
 data <- read.csv(file="Ass4Data.csv")
@@ -12,7 +12,7 @@ summary(data)
 
 trControl <- trainControl("cv", number = 5, timingSamps = 100)  # shared cross validation specification
 
-method = "xgbTree"
+method = "svmRadial"
 
 tune_grid <- expand.grid(nrounds = 200,
                          max_depth = 5,
@@ -22,16 +22,14 @@ tune_grid <- expand.grid(nrounds = 200,
                          min_child_weight = 0,
                          subsample = 0.5)
 
-mods <- caret::train(Y ~ ., data = data, method = method, eval_metric = "rmse",
+mods <- caret::train(Y ~ ., data = data, method = method, metric = "RMSE",
                      trControl = trControl,
-                     tuneGrid = expand.grid(nrounds = 1000, colsample_bytree = .5, min_child_weight = 0, subsample = .5,
-                                            max_depth = 2, eta = 0.2, gamma = 0.01)
+                     tuneGrid = expand.grid(C = 10^seq(4,6), sigma = 10^seq(-2,-10))
 ) 
-mods$times$prediction
+plot(mods, log = 'Sigma')
 m2 <- train(Y~., data = data, method = "lm", trControl = trControl)
 
 res <- resamples(list(t=mods, l=m2))
 cat("Model processing times (s):")
 print(select(res$timings, Training=FinalModel, Predicting=Prediction))
 print(mods)
-

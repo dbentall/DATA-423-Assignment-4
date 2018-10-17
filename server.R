@@ -175,10 +175,37 @@ shinyServer(function(input, output, session) {
   })
   
   
+  ##############################################################################
+  getSVMModels <- reactive({
+    method <- "svmRadial"
+    showNotification(id = method, paste("Optimising", method, "hyper-parameters using cross validation"), session = session, duration = NULL)
+    mods <- caret::train(Y ~ ., data = getTrainData(), method = method, metric = "RMSE",
+                         trControl = trControl,
+                         tuneGrid = expand.grid(C = c(2000, 5000, 10000, 20000), sigma = seq(0.0001, 0.003, by=0.0001))
+    ) 
+    removeNotification(id=method)
+    mods
+  })
+  
+  output$SVMModelSummary1 <- renderTable({
+    mods <- getSVMModels()
+    as.data.frame(mods$bestTune)
+  }, digits = -1)  
+  
+  output$SVMModelPlots <- renderPlot({
+    plot(getSVMModels())
+  })     
+  
+  output$SVMModelSummary2 <- renderPrint({
+    mods <- getSVMModels()
+    print(mods$finalModel)
+  })
+  
+  
   
   ##############################################################################  
   getAllModels <- reactive({
-    list(GLMnet=getGlmModels(), PLS=getPlsModels(), ANN=getAnnModels(), XGB=getXGBModels())  # expand this list with further models
+    list(GLMnet=getGlmModels(), PLS=getPlsModels(), ANN=getAnnModels(), XGB=getXGBModels(), SVM=getSVMModels())  # expand this list with further models
   })
   
   output$SelectionSummary <- renderPrint({

@@ -47,12 +47,19 @@ shinyUI(fluidPage(
              plotOutput("XGBModelPlots"),
              verbatimTextOutput("XGBModelSummary2")
     ),
+    tabPanel("SVM Model",
+             tags$h3("Best tuning parameters:"),
+             tableOutput("SVMModelSummary1"),
+             hr(),
+             plotOutput("SVMModelPlots"),
+             verbatimTextOutput("SVMModelSummary2")
+    ),
     tabPanel("Model Selection",
              tags$h3("Cross validation results:"),
              checkboxInput("Notch", "Show notch", value = FALSE),
              plotOutput("SelectionBoxPlot"),
              verbatimTextOutput("Times"),
-             radioButtons("Choice", "Model choice", choices = c("GLMnet", "PLS", "ANN", "XGB"), selected = "PLS")
+             radioButtons("Choice", "Model choice", choices = c("GLMnet", "PLS", "ANN", "XGB", "SVM"), selected = "PLS")
     ),
     tabPanel("Performance",
              htmlOutput("Title"),
