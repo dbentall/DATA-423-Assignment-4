@@ -5,6 +5,7 @@ library(doParallel)
 library(pls)
 library(nnet)
 library(glmnet)
+library(xgboost)
 
 # TODO
   # change CV back to 20
@@ -142,13 +143,40 @@ shinyServer(function(input, output, session) {
     print(mods$finalModel)
   })
   
-
+  
+  
+  ##############################################################################
+  getXGBModels <- reactive({
+    method <- "xgbTree"
+    showNotification(id = method, paste("Optimising", method, "hyper-parameters using cross validation"), session = session, duration = NULL)
+    mods <- caret::train(Y ~ ., data = getTrainData(), method = method, metric = "RMSE",
+                         trControl = trControl,
+                         tuneGrid = expand.grid(nrounds = 500, colsample_bytree = 1/3, min_child_weight = 1, subsample = 1,
+                                                max_depth = c(1,2,3), eta = c(0.2, 0.3, 0.4), gamma = c(0, 1, 10))
+    ) 
+    removeNotification(id=method)
+    mods
+  })
+  
+  output$XGBModelSummary1 <- renderTable({
+    mods <- getXGBModels()
+    as.data.frame(mods$bestTune)
+  })  
+  
+  output$XGBModelPlots <- renderPlot({
+    plot(getXGBModels())
+  })     
+  
+  output$XGBModelSummary2 <- renderPrint({
+    mods <- getXGBModels()
+    print(mods$finalModel)
+  })
   
   
   
   ##############################################################################  
   getAllModels <- reactive({
-    list(GLMnet=getGlmModels(), PLS=getPlsModels(), ANN=getAnnModels())  # expand this list with further models
+    list(GLMnet=getGlmModels(), PLS=getPlsModels(), ANN=getAnnModels(), XGB=getXGBModels)  # expand this list with further models
   })
   
   output$SelectionSummary <- renderPrint({

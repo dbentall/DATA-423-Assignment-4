@@ -6,6 +6,8 @@ shinyUI(fluidPage(
   
   # Application title
   titlePanel("Assignment 4"),
+  tags$h4("Daniel Bentall - 65254210"),
+  tags$h4("21/10/18"),
   
   tabsetPanel(
     tabPanel("Data",
@@ -37,12 +39,19 @@ shinyUI(fluidPage(
              hr(),
              plotOutput("AnnModelPlots"),
              verbatimTextOutput("AnnModelSummary2")
-    ),    
+    ),
+    tabPanel("XGBoost Model",
+             tags$h3("Best tuning parameters:"),
+             tableOutput("XGBModelSummary1"),
+             hr(),
+             plotOutput("XGBModelPlots"),
+             verbatimTextOutput("XGBModelSummary2")
+    ),
     tabPanel("Model Selection",
              tags$h3("Cross validation results:"),
              checkboxInput("Notch", "Show notch", value = FALSE),
              plotOutput("SelectionBoxPlot"),
-             radioButtons("Choice", "Model choice", choices = c("GLMnet", "PLS", "ANN"), selected = "PLS")
+             radioButtons("Choice", "Model choice", choices = c("GLMnet", "PLS", "ANN", "XGB"), selected = "XGB")
     ),
     tabPanel("Performance",
              htmlOutput("Title"),
