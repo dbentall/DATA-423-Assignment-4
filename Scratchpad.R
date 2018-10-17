@@ -2,6 +2,7 @@
 library(caret)
 library(kernlab)
 library(dplyr)
+library(ggplot2)
 
 data <- read.csv(file="Ass4Data.csv")
 rownames(data) <- data$ID
@@ -10,7 +11,7 @@ data$ID <- NULL
 
 summary(data)
 
-trControl <- trainControl("cv", number = 5, timingSamps = 100)  # shared cross validation specification
+trControl <- trainControl("cv", number = 10, timingSamps = 100)  # shared cross validation specification
 
 method = "svmRadial"
 
@@ -24,12 +25,19 @@ tune_grid <- expand.grid(nrounds = 200,
 
 mods <- caret::train(Y ~ ., data = data, method = method, metric = "RMSE",
                      trControl = trControl,
-                     tuneGrid = expand.grid(C = 10^seq(4,6), sigma = 10^seq(-2,-10))
+                     tuneGrid = expand.grid(C = 10^seq(4,7), sigma = 10^seq(-2,-5))
 ) 
-plot(mods, log = 'Sigma')
+
+mods$bestTune
+
+ggplot(filter(mods$results, C < 1E8)) +
+  geom_line(aes(sigma, RMSE, col=factor(C))) +
+  geom_point(aes(sigma, RMSE, col=factor(C))) + 
+  scale_x_continuous(trans='log10') +coord_cartesian(ylim = c(10, 60))
+
+filter(mods$results, sigma == 1e-4)
+
 m2 <- train(Y~., data = data, method = "lm", trControl = trControl)
 
 res <- resamples(list(t=mods, l=m2))
-cat("Model processing times (s):")
-print(select(res$timings, Training=FinalModel, Predicting=Prediction))
-print(mods)
+

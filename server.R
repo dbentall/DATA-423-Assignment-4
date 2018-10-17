@@ -8,6 +8,7 @@ library(pls)
 library(nnet)
 library(xgboost)
 library(kernlab)
+library(ggplot2)
 
 # TODO
   # change CV back to 20
@@ -181,7 +182,7 @@ shinyServer(function(input, output, session) {
     showNotification(id = method, paste("Optimising", method, "hyper-parameters using cross validation"), session = session, duration = NULL)
     mods <- caret::train(Y ~ ., data = getTrainData(), method = method, metric = "RMSE",
                          trControl = trControl,
-                         tuneGrid = expand.grid(C = c(2000, 5000, 10000, 20000), sigma = seq(0.0001, 0.003, by=0.0001))
+                         tuneGrid = expand.grid(C = 10^seq(4,7), sigma = 10^seq(-2,-5))
     ) 
     removeNotification(id=method)
     mods
@@ -194,7 +195,15 @@ shinyServer(function(input, output, session) {
   
   output$SVMModelPlots <- renderPlot({
     plot(getSVMModels())
-  })     
+    df <- getSVMModels()$results
+    df$Cost <- factor(df$C)
+    ggplot(df) +
+      geom_line(aes(sigma, RMSE, col=Cost)) +
+      geom_point(aes(sigma, RMSE, col=Cost)) + 
+      scale_x_continuous(trans='log10') + 
+      coord_cartesian(ylim = c(10, 60)) +
+      ylab("RMSE (Cross-Validation")
+  })
   
   output$SVMModelSummary2 <- renderPrint({
     mods <- getSVMModels()
