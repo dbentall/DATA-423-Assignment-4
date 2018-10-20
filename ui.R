@@ -72,8 +72,8 @@ shinyUI(fluidPage(
                               selected = "SVM")
                ),
                mainPanel(
-                 "There are many factors that affect model selection beyond just RMSE, including intelligibility,
-                 complexity and model capabilities. Depending on the application these vary in importance.
+                 "There are many factors that affect model selection beyond just MAE, RMSE and R-squared, including
+                 intelligibility, complexity and model capabilities. Depending on the application these vary in importance.
                  ",br(),br(),"
                  Some models are more intelligible and therefore transparent than others. In critical application
                  areas such as healthcare and law it is important that a model's decisions can be analysed and
@@ -83,22 +83,28 @@ shinyUI(fluidPage(
                  A prediction using kNN can be explained by its neighbors. ANNs and SVMs are non-parametric models
                  which are more difficult to interpret.
                  ",br(),br(),"
-                 Some models can take a prohibitively long time or a require a large amount of RAM to train on 
-                 larger datasets. Others can take a long time to make predictions, which can be a problem in
+                 Some models can take a prohibitively long time or a require a large amount of RAM to train, especially 
+                 on larger datasets. Others can take a long time to make predictions, which can be a problem in
                  applications requiring real-time performance. Greedy models generally take a long time to train 
                  and make predictions more quickly, while lazy algorithms tend to be the opposite. The times above
-                 show that ANNs and to an extent SVMs are slow to train while GAMs are slow to make predictions. 
+                 show that ANNs and SVMs are slow to train while GAMs, and sometimes SVMs and GLMnets, are slow to make predictions. 
                  Some models can split their processing and run in parallel, which allows them to be scaled up
                  easily by deployment on a cluster.
                  ",br(),br(),"
-                 A related aspect is the internal complexity of a model, similar to its number of trainable 
+                 A related aspect is the internal complexity of a model, which is similar to its number of trainable 
                  parameters. A model with greater complexity needs a larger amount of training data to fit the
                  parameters accurately. ANNs have a great number of parameters, so this one may be performing 
-                 poorly due to the small dataset size.
+                 poorly due to the small dataset size. Interestingly the GAM model chosen by the tuning process
+                 is the GAM with the least internal complexity, with only one degree of freedom. This reduces to
+                 a linear regression, suggesting that this these predictors generally have linear relationships
+                 with the response.
                  ",br(),br(),"
-                 Different models offer various features, such as being able to classify and/or perform regression,
+                 Finally, different models offer various features, such as being able to classify and/or perform regression,
                  being tolerant of missing values and outliers and providing prediction confidence intervals 
-                 without needing to resample. "
+                 without needing to resample. In the absence of application information the SVM is the clear winner,
+                 with its RMSE and MAE less than half that of the other models, and a much higher R-squared. It also has a
+                 tighter distribution of these statistics, suggesting that it is more stable and thus will generalise better 
+                 to unseen data"
                )
              )
     ),

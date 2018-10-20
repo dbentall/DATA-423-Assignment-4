@@ -11,16 +11,14 @@ library(nnet)
 library(gam)
 library(kernlab)
 
-# TODO
-  # change CV back to 20
-
 clus <- makeCluster(detectCores(all.tests = FALSE, logical = TRUE))
 registerDoParallel(clus)  # this will work on windows
-trControl <- trainControl("cv", number = 5, timingSamps = 10)  # shared cross validation specification
+onStop(function() stopCluster(clus)) # stop the cluster and free memory on app close
+
+trControl <- trainControl("cv", number = 20, timingSamps = 10)  # shared cross validation specification
 
 shinyServer(function(input, output, session) {
   
-  onStop(function() stopCluster(clus))
   
   getData <- reactive({
     data <- read.csv(file="Ass4Data.csv")
