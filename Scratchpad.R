@@ -1,8 +1,13 @@
-
 library(caret)
-library(kernlab)
+library(gam)
 library(dplyr)
 library(ggplot2)
+library(doParallel)
+library(monomvn)
+library(party)
+
+clus <- makeCluster(detectCores(all.tests = FALSE, logical = TRUE))
+registerDoParallel(clus)  # this will work on windows
 
 data <- read.csv(file="Ass4Data.csv")
 rownames(data) <- data$ID
@@ -11,24 +16,41 @@ data$ID <- NULL
 
 summary(data)
 
-trControl <- trainControl("cv", number = 10, timingSamps = 100)  # shared cross validation specification
+trControl <- trainControl("cv", number = 20, timingSamps = 100)  # shared cross validation specification
 
-method = "svmRadial"
 
-tune_grid <- expand.grid(nrounds = 200,
-                         max_depth = 5,
-                         eta = 0.05,
-                         gamma = 0.01,
-                         colsample_bytree = 0.75,
-                         min_child_weight = 0,
-                         subsample = 0.5)
+method = "xgbLinear"
+tuneGrid = expand.grid(nrounds = 100, lambda = c(0.25, 0.5, 1), alpha = seq(0.1, 0.2, 0.3, 0.4), 
+                       eta = 10^-4)
 
+method = "gamSpline"
+tuneGrid = expand.grid(df = seq(1, 3))
+
+method = "knn"
+tuneGrid = expand.grid(k = seq(0, 30))#0.6, 0.02))
+
+set.seed(1)
 mods <- caret::train(Y ~ ., data = data, method = method, metric = "RMSE",
                      trControl = trControl,
-                     tuneGrid = expand.grid(C = 10^seq(4,7), sigma = 10^seq(-2,-5))
+                     tuneGrid = tuneGrid
 ) 
 
+plot(mods)
+print(mods$finalModel)
+
 mods$bestTune
+mods$finalModel$coefficients
+
+zeros <- data.frame(t(rep(0, 19)))
+names(zeros) <- names(data)
+zeros[1,"Alcohol"] = 1
+
+predict(mods$finalModel, newdata = zeros)
+mods$results$RMSESD[6]
+
+c <- cor(data)
+corrplot(c)
+plot(data$DoseN, data$Y)
 
 ggplot(filter(mods$results, C < 1E8)) +
   geom_line(aes(sigma, RMSE, col=factor(C))) +

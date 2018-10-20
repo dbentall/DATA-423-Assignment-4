@@ -3,12 +3,13 @@ library(DT)
 library(caret)
 library(doParallel)
 library(dplyr)
+library(ggplot2)
+
 library(glmnet)
 library(pls)
 library(nnet)
-library(xgboost)
+library(gam)
 library(kernlab)
-library(ggplot2)
 
 # TODO
   # change CV back to 20
@@ -149,30 +150,29 @@ shinyServer(function(input, output, session) {
   
   
   ##############################################################################
-  getXGBModels <- reactive({
-    method <- "xgbTree"
+  getGAMModels <- reactive({
+    method <- "gamSpline"
     showNotification(id = method, paste("Optimising", method, "hyper-parameters using cross validation"), session = session, duration = NULL)
     mods <- caret::train(Y ~ ., data = getTrainData(), method = method, metric = "RMSE",
                          trControl = trControl,
-                         tuneGrid = expand.grid(nrounds = 500, colsample_bytree = 0.33, min_child_weight = 1, subsample = 1,
-                                                max_depth = c(2,3,4), eta = c(0.04, 0.05, 0.06), gamma = 1)
+                         tuneGrid = expand.grid(df = seq(1, 3))
     ) 
     removeNotification(id=method)
     mods
   })
   
-  output$XGBModelSummary1 <- renderTable({
-    mods <- getXGBModels()
+  output$GAMModelSummary1 <- renderTable({
+    mods <- getGAMModels()
     as.data.frame(mods$bestTune)
   })  
   
-  output$XGBModelPlots <- renderPlot({
-    plot(getXGBModels())
+  output$GAMModelPlots <- renderPlot({
+    plot(getGAMModels())
   })     
   
-  output$XGBModelSummary2 <- renderPrint({
-    mods <- getXGBModels()
-    print(mods)
+  output$GAMModelSummary2 <- renderPrint({
+    mods <- getGAMModels()
+    print(mods$finalModel$coefficients)
   })
   
   
@@ -211,10 +211,36 @@ shinyServer(function(input, output, session) {
   })
   
   
+  ##############################################################################
+  getkNNModels <- reactive({
+    method <- "knn"
+    showNotification(id = method, paste("Optimising", method, "hyper-parameters using cross validation"), session = session, duration = NULL)
+    mods <- caret::train(Y ~ ., data = getTrainData(), method = method, metric = "RMSE",
+                         trControl = trControl,
+                         tuneGrid = expand.grid(k = seq(1, 20))
+    ) 
+    removeNotification(id=method)
+    mods
+  })
+  
+  output$kNNModelSummary1 <- renderTable({
+    mods <- getkNNModels()
+    as.data.frame(mods$bestTune)
+  })  
+  
+  output$kNNModelPlots <- renderPlot({
+    plot(getkNNModels())
+  })
+  
+  output$kNNModelSummary2 <- renderPrint({
+    mods <- getkNNModels()
+    print(mods$finalModel)
+  })
+  
   
   ##############################################################################  
   getAllModels <- reactive({
-    list(GLMnet=getGlmModels(), PLS=getPlsModels(), ANN=getAnnModels(), XGB=getXGBModels(), SVM=getSVMModels())  # expand this list with further models
+    list(GLMnet=getGlmModels(), PLS=getPlsModels(), ANN=getAnnModels(), GAM=getGAMModels(), SVM=getSVMModels(), kNN=getkNNModels())
   })
   
   output$SelectionSummary <- renderPrint({
@@ -228,8 +254,8 @@ shinyServer(function(input, output, session) {
   })
   
   output$Times <- renderPrint({
-    cat("Model processing times (s):")
-    print(select(resamples(getAllModels())$timings, Training=FinalModel, Predicting=Prediction))
+    cat("Final model processing times (s):\n")
+    print(dplyr::select(resamples(getAllModels())$timings, Training=FinalModel, Predicting=Prediction))
   })
   
   

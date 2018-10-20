@@ -40,12 +40,12 @@ shinyUI(fluidPage(
              plotOutput("AnnModelPlots"),
              verbatimTextOutput("AnnModelSummary2")
     ),
-    tabPanel("XGBoost Model",
+    tabPanel("GAM Model",
              tags$h3("Best tuning parameters:"),
-             tableOutput("XGBModelSummary1"),
+             tableOutput("GAMModelSummary1"),
              hr(),
-             plotOutput("XGBModelPlots"),
-             verbatimTextOutput("XGBModelSummary2")
+             plotOutput("GAMModelPlots"),
+             verbatimTextOutput("GAMModelSummary2")
     ),
     tabPanel("SVM Model",
              tags$h3("Best tuning parameters:"),
@@ -54,12 +54,53 @@ shinyUI(fluidPage(
              plotOutput("SVMModelPlots"),
              verbatimTextOutput("SVMModelSummary2")
     ),
+    tabPanel("kNN Model",
+             tags$h3("Best tuning parameters:"),
+             tableOutput("kNNModelSummary1"),
+             hr(),
+             plotOutput("kNNModelPlots"),
+             verbatimTextOutput("kNNModelSummary2")
+    ),
     tabPanel("Model Selection",
              tags$h3("Cross validation results:"),
              checkboxInput("Notch", "Show notch", value = FALSE),
              plotOutput("SelectionBoxPlot"),
              verbatimTextOutput("Times"),
-             radioButtons("Choice", "Model choice", choices = c("GLMnet", "PLS", "ANN", "XGB", "SVM"), selected = "PLS")
+             sidebarLayout(
+               sidebarPanel(width = 3,
+                 radioButtons("Choice", "Model choice", choices = c("GLMnet", "PLS", "ANN", "GAM", "SVM", "kNN"), 
+                              selected = "SVM")
+               ),
+               mainPanel(
+                 "There are many factors that affect model selection beyond just RMSE, including intelligibility,
+                 complexity and model capabilities. Depending on the application these vary in importance.
+                 ",br(),br(),"
+                 Some models are more intelligible and therefore transparent than others. In critical application
+                 areas such as healthcare and law it is important that a model's decisions can be analysed and
+                 understood. This is necessary so that biases can be discovered and removed, and decisions can be
+                 explained to affected parties. GLMnets, PLSs and GAMs are models that can be expressed in terms 
+                 of coefficients and predictors, so the influence of a predictor on the result can be evaluated.
+                 A prediction using kNN can be explained by its neighbors. ANNs and SVMs are non-parametric models
+                 which are more difficult to interpret.
+                 ",br(),br(),"
+                 Some models can take a prohibitively long time or a require a large amount of RAM to train on 
+                 larger datasets. Others can take a long time to make predictions, which can be a problem in
+                 applications requiring real-time performance. Greedy models generally take a long time to train 
+                 and make predictions more quickly, while lazy algorithms tend to be the opposite. The times above
+                 show that ANNs and to an extent SVMs are slow to train while GAMs are slow to make predictions. 
+                 Some models can split their processing and run in parallel, which allows them to be scaled up
+                 easily by deployment on a cluster.
+                 ",br(),br(),"
+                 A related aspect is the internal complexity of a model, similar to its number of trainable 
+                 parameters. A model with greater complexity needs a larger amount of training data to fit the
+                 parameters accurately. ANNs have a great number of parameters, so this one may be performing 
+                 poorly due to the small dataset size.
+                 ",br(),br(),"
+                 Different models offer various features, such as being able to classify and/or perform regression,
+                 being tolerant of missing values and outliers and providing prediction confidence intervals 
+                 without needing to resample. "
+               )
+             )
     ),
     tabPanel("Performance",
              htmlOutput("Title"),
