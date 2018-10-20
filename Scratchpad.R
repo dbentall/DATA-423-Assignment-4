@@ -19,9 +19,8 @@ summary(data)
 trControl <- trainControl("cv", number = 20, timingSamps = 100)  # shared cross validation specification
 
 
-method = "xgbLinear"
-tuneGrid = expand.grid(nrounds = 100, lambda = c(0.25, 0.5, 1), alpha = seq(0.1, 0.2, 0.3, 0.4), 
-                       eta = 10^-4)
+method = "svmRadial"
+tuneGrid = expand.grid(C = 10^seq(4,7), sigma = 10^seq(-2,-5))
 
 method = "gamSpline"
 tuneGrid = expand.grid(df = seq(1, 3))
@@ -35,11 +34,13 @@ mods <- caret::train(Y ~ ., data = data, method = method, metric = "RMSE",
                      tuneGrid = tuneGrid
 ) 
 
-plot(mods)
+par(mfrow = c(4, 6))
+plot(mods$finalModel)
 print(mods)
 
 mods$bestTune
-mods$finalModel$coefficients
+
+t(t(mods$finalModel$coefficients))
 
 zeros <- data.frame(t(rep(0, 19)))
 names(zeros) <- names(data)

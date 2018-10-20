@@ -172,7 +172,8 @@ shinyServer(function(input, output, session) {
   
   output$GAMModelSummary2 <- renderPrint({
     mods <- getGAMModels()
-    print(mods$finalModel$coefficients)
+    cat("Final model coefficients:\n")
+    print(t(t(mods$finalModel$coefficients)))
   })
   
   

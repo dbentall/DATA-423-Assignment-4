@@ -94,7 +94,9 @@ shinyUI(fluidPage(
                  ",br(),br(),"
                  A related aspect is the internal complexity of a model, which is similar to its number of trainable 
                  parameters. A model with greater complexity needs a larger amount of training data to fit the
-                 parameters accurately. ANNs have a great number of parameters, so this one may be performing 
+                 parameters accurately. Since these models are tuned with cross-validation, inherently complex models
+                 will not overfit the data, but they will not be able to use their complexity to their advantage. ANNs 
+                 have a great number of parameters, so this one may be performing 
                  poorly due to the small dataset size. Interestingly the GAM model chosen by the tuning process
                  is the GAM with the least internal complexity, with only one degree of freedom. This reduces to
                  a linear regression, suggesting that this these predictors generally have linear relationships
