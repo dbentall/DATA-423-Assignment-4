@@ -27,7 +27,7 @@ method = "gamSpline"
 tuneGrid = expand.grid(df = seq(1, 3))
 
 method = "knn"
-tuneGrid = expand.grid(k = seq(0, 30))#0.6, 0.02))
+tuneGrid = expand.grid(k = seq(1, 20))
 
 set.seed(1)
 mods <- caret::train(Y ~ ., data = data, method = method, metric = "RMSE",
@@ -36,7 +36,7 @@ mods <- caret::train(Y ~ ., data = data, method = method, metric = "RMSE",
 ) 
 
 plot(mods)
-print(mods$finalModel)
+print(mods)
 
 mods$bestTune
 mods$finalModel$coefficients
@@ -62,4 +62,6 @@ filter(mods$results, sigma == 1e-4)
 m2 <- train(Y~., data = data, method = "lm", trControl = trControl)
 
 res <- resamples(list(t=mods, l=m2))
+
+stopCluster(clus) # stop the cluster and free memory on app close
 

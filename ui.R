@@ -89,7 +89,8 @@ shinyUI(fluidPage(
                  and make predictions more quickly, while lazy algorithms tend to be the opposite. The times above
                  show that ANNs and SVMs are slow to train while GAMs, and sometimes SVMs and GLMnets, are slow to make predictions. 
                  Some models can split their processing and run in parallel, which allows them to be scaled up
-                 easily by deployment on a cluster.
+                 easily by deployment on a cluster. All of these models use all available cores of the CPU, as can be 
+                 seen in Task Manager.
                  ",br(),br(),"
                  A related aspect is the internal complexity of a model, which is similar to its number of trainable 
                  parameters. A model with greater complexity needs a larger amount of training data to fit the
