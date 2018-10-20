@@ -19,7 +19,9 @@ registerDoParallel(clus)  # this will work on windows
 trControl <- trainControl("cv", number = 5, timingSamps = 10)  # shared cross validation specification
 
 shinyServer(function(input, output, session) {
-
+  
+  onStop(function() stopCluster(clus))
+  
   getData <- reactive({
     data <- read.csv(file="Ass4Data.csv")
     rownames(data) <- data$ID
